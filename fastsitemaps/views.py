@@ -9,7 +9,7 @@ from sitemaps import RequestSitemap
 
 SITE_ATTR = getattr(settings, 'FASTSITEMAPS_SITE_ATTR', 'site')
 
-def index(request, sitemaps, template_name='sitemap_index.xml', 
+def index(request, sitemaps, template_name='sitemap_index.xml',
           mimetype='application/xml'):
     current_site = getattr(request, SITE_ATTR, get_current_site(request))
     sites = []
@@ -18,18 +18,24 @@ def index(request, sitemaps, template_name='sitemap_index.xml',
         site.request = request
         if callable(site):
             if issubclass(site, RequestSitemap):
-                pages = site(request=request).paginator.num_pages
+                paginator = site(request=request).paginator
             else:
-                pages = site().paginator.num_pages
+                paginator = site().paginator
         else:
-            pages = site.paginator.num_pages
-        sitemap_url = urlresolvers.reverse('fastsitemaps.views.sitemap', 
+            paginator = site.paginator
+
+        pages = paginator.num_pages
+        count = paginator.count
+        sitemap_url = urlresolvers.reverse('fastsitemaps.views.sitemap',
                                            kwargs={'section': section})
-        sites.append('%s://%s%s' % (protocol, current_site.domain, sitemap_url))
-        if pages > 1:
-            for page in range(2, pages+1):
-                sites.append('%s://%s%s?p=%s' % (protocol, current_site.domain, sitemap_url, page))
-    return TemplateResponse(request, template_name, {'sitemaps': sites}, 
+        if count > 0:
+            sites.append('%s://%s%s' % (protocol, current_site.domain,
+                sitemap_url))
+            if pages > 1:
+                for page in range(2, pages+1):
+                    sites.append('%s://%s%s?p=%s' % (protocol,
+                        current_site.domain, sitemap_url, page))
+    return TemplateResponse(request, template_name, {'sitemaps': sites},
                             mimetype=mimetype)
 
 def sitemap(request, sitemaps, section=None):
@@ -42,6 +48,6 @@ def sitemap(request, sitemaps, section=None):
         maps = sitemaps.values()
     page = request.GET.get("p", 1)
     current_site = getattr(request, SITE_ATTR, get_current_site(request))
-    return HttpResponse(sitemap_generator(request, maps, page, current_site), 
+    return HttpResponse(sitemap_generator(request, maps, page, current_site),
                         mimetype='application/xml')
-    
+
