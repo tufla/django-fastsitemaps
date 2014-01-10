@@ -25,10 +25,11 @@ def index(request, sitemaps, template_name='sitemap_index.xml',
             pages = site.paginator.num_pages
         sitemap_url = urlresolvers.reverse('fastsitemaps.views.sitemap', 
                                            kwargs={'section': section})
-        sites.append('%s://%s%s' % (protocol, current_site.domain, sitemap_url))
-        if pages > 1:
-            for page in range(2, pages+1):
-                sites.append('%s://%s%s?p=%s' % (protocol, current_site.domain, sitemap_url, page))
+        if len(site.items()) > 0:
+            sites.append('%s://%s%s' % (protocol, current_site.domain, sitemap_url))
+            if pages > 1:
+                for page in range(2, pages+1):
+                    sites.append('%s://%s%s?p=%s' % (protocol, current_site.domain, sitemap_url, page))
     return TemplateResponse(request, template_name, {'sitemaps': sites}, 
                             mimetype=mimetype)
 
