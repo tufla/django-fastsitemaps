@@ -16,7 +16,6 @@ def sitemap_generator(request, maps, page, current_site):
     yield output.getvalue()
     pos = output.tell()
     for site in maps:
-        site.request = request
         if callable(site):
             if issubclass(site, RequestSitemap):
                 site = site(request=request)
